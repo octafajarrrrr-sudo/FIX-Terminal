@@ -1,18 +1,12 @@
-# Node modules
-node_modules/
-npm-debug.log
-yarn-error.log
-
-# Environment variables
 .env
-.env.local
-
-# Build outputs
+shared/logs/*.log
+shared/data/*.json
+__pycache__/
+*.pyc
+.DS_Store
+venv/
+node_modules/
+*.egg-info/
 dist/
 build/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+.pytest_cache/
