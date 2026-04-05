@@ -1,0 +1,17 @@
+Here is the trading performance summary for the last 24 hours:
+
+Total trades: {total_trades}
+Winning trades: {win_count}
+Win rate: {win_rate:.2f}%
+Average net profit per trade: ${avg_profit_net:.4f}
+Total profit: ${total_profit:.4f}
+Error count: {error_count}
+
+Current configuration:
+- min_funding_rate: {min_funding_rate}
+- margin_per_trade_usd: {margin_per_trade_usd}
+- max_concurrent_pairs: {max_concurrent_pairs}
+- entry_window_seconds: {entry_window_seconds}
+- futures_leverage: {futures_leverage}
+
+Please analyze and provide your recommendation as JSON.

@@ -1,0 +1,16 @@
+{
+  "name": "funding-multi-agent",
+  "version": "1.0.0",
+  "description": "Multi-agent funding fee arbitrage system with LLM analyst",
+  "skills": [
+    {
+      "name": "trade_analyst",
+      "description": "Analyzes trading logs and generates parameter recommendations using Qwen LLM",
+      "entry": "skills/trade_analyst.py",
+      "schedule": "0 */6 * * *",
+      "params": {
+        "hours": 24
+      }
+    }
+  ]
+}

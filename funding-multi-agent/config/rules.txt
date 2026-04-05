@@ -1,0 +1,5 @@
+Output HARUS JSON. JANGAN tambah teks lain.
+Jangan rekomendasi leverage > 10x.
+Jika win rate < 50% -> rekomendasi "PAUSE".
+Jika avg profit < 0.01 USD -> rekomendasi "ADJUST" dengan menaikkan min_funding_rate (misal -1.2%).
+Jangan halusinasi. Hanya gunakan data dari log.

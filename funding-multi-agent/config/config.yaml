@@ -1,0 +1,24 @@
+executor:
+  binance:
+    testnet: true
+    futures_leverage: 10
+    margin_mode: ISOLATED
+  strategy:
+    min_funding_rate: -1.0
+    max_concurrent_pairs: 3
+    margin_per_trade_usd: 10
+    entry_window_seconds: 10
+    exit_window_seconds: 5
+  risk:
+    max_daily_loss_usd: 5
+    max_consecutive_losses: 3
+    stop_loss_percent: 2.0
+    pause_on_error: true
+
+analyst:
+  openrouter:
+    model: "qwen/qwen3.6-plus-preview:free"
+    temperature: 0.1
+
+approval:
+  timeout_minutes: 10
