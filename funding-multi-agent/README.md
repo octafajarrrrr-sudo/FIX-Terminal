@@ -145,7 +145,7 @@ pm2 stop all                # Stop all processes
 
 ## How It Works
 
-1. **Every 60 seconds**, the executor bot fetches funding rates for all USDT-M perpetual pairs
+1. **Every 30 seconds**, the executor bot fetches funding rates for all USDT-M perpetual pairs
 2. Filters pairs with funding rate <= -1.0% (configurable)
 3. Sorts by most negative rate and selects top 3
 4. **10 seconds before settlement**: Opens a LONG market order (collecting negative funding = profit)

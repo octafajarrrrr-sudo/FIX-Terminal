@@ -94,7 +94,7 @@ def run():
     # Start prometheus metrics server
     metrics_exporter.start_metrics_server(port=8000)
 
-    logger.info("Executor bot started. min_rate=%.2f%%, leverage=%dx", min_funding_rate, leverage)
+    logger.info("Executor bot started. min_rate=%.2f%%, leverage=%dx, poll_interval=30s", min_funding_rate, leverage)
 
     config_mtime = os.path.getmtime(CONFIG_PATH) if CONFIG_PATH.exists() else 0
 
@@ -133,7 +133,7 @@ def run():
             # Check if paused
             if risk.is_paused():
                 logger.info("Bot is paused, waiting...")
-                time.sleep(60)
+                time.sleep(30)
                 continue
 
             if risk.check_daily_loss():
@@ -149,7 +149,7 @@ def run():
             # Fetch funding rates
             rates = client.get_funding_rates()
             if not rates:
-                time.sleep(60)
+                time.sleep(30)
                 continue
 
             # Filter, sort, select
@@ -158,7 +158,7 @@ def run():
             top_pairs = strategy.select_top_pairs(sorted_pairs, max_pairs)
 
             if not top_pairs:
-                time.sleep(60)
+                time.sleep(30)
                 continue
 
             # Check existing positions
@@ -283,7 +283,7 @@ def run():
             if risk_cfg.get("pause_on_error", True):
                 risk.pause(duration_seconds=300)
 
-        time.sleep(60)
+        time.sleep(30)
 
     logger.info("Executor bot stopped")
 
