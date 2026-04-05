@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """Trade log reader and aggregator.
 
 Reads the JSON-lines trades.log file and computes aggregate statistics
 for the LLM analyst to evaluate.
 """
+
+from __future__ import annotations
 
 import json
 import os

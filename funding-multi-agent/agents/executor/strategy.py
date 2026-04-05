@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """Trading strategy logic for funding rate arbitrage.
 
 Handles pair filtering, sorting, selection, quantity calculation,
 and entry timing decisions.
 """
+
+from __future__ import annotations
 
 import time
 import logging

@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """Binance Futures client wrapper using CCXT.
 
 Handles all direct interactions with the Binance Futures API including
 funding rate queries, leverage/margin configuration, and order execution.
 """
+
+from __future__ import annotations
 
 import os
 import ccxt

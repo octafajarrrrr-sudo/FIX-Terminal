@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """JSON response parser and validator for LLM output.
 
 Extracts and validates JSON from the LLM response, handling cases
 where the model wraps JSON in markdown code blocks.
 """
+
+from __future__ import annotations
 
 import json
 import re

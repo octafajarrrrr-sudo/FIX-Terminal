@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """Telegram approval bot.
 
 Runs as a long-polling Telegram bot that:
@@ -7,6 +5,8 @@ Runs as a long-polling Telegram bot that:
 2. Sends recommendations to the user for approval.
 3. Processes yes/no replies to update config or reject changes.
 """
+
+from __future__ import annotations
 
 import os
 import sys
