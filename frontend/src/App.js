@@ -1,52 +1,77 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import io from 'socket.io-client';
-import Chart from './components/Chart';
-import PanelAkun from './components/PanelAkun';
-import PanelAI from './components/PanelAI';
-import PanelCoinglass from './components/PanelCoinglass';
-import PanelWhaleAlert from './components/PanelWhaleAlert';
-import PanelSentiment from './components/PanelSentiment';
-import OrderForm from './components/OrderForm';
+import PanelFundingBot from './components/PanelFundingBot';
+import PanelOpportunities from './components/PanelOpportunities';
+import PanelPositions from './components/PanelPositions';
+import { fetchBotStatus } from './api';
 import './App.css';
 
 const socket = io('http://localhost:5000');
 
 function App() {
-  const [price, setPrice] = useState(null);
-  const [symbol] = useState('BTCUSDT');
+  const [status, setStatus] = useState(null);
+
+  const refreshStatus = useCallback(async () => {
+    try {
+      const data = await fetchBotStatus();
+      setStatus(data);
+    } catch (err) {
+      console.error('Failed to fetch status:', err);
+    }
+  }, []);
 
   useEffect(() => {
-    socket.emit('subscribe', symbol);
-    socket.on('price', (data) => {
-      if (data.symbol === symbol) setPrice(data.price);
+    // Initial fetch
+    refreshStatus();
+
+    // Real-time updates via Socket.IO
+    socket.on('ff:status', (data) => {
+      setStatus(data);
     });
 
     return () => {
-      socket.off('price');
+      socket.off('ff:status');
     };
-  }, [symbol]);
+  }, [refreshStatus]);
 
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Trading Terminal</h1>
-        {price && <div>Harga {symbol}: ${parseFloat(price).toFixed(2)}</div>}
+        <h1>Funding Fee Arbitrage Bot</h1>
+        <p className="subtitle">Binance Perpetual Futures - Delta Neutral Strategy</p>
+        {status && (
+          <div className="header-info">
+            <span className={`bot-badge ${status.running ? 'running' : 'stopped'}`}>
+              {status.running ? 'BOT ACTIVE' : 'BOT IDLE'}
+            </span>
+            <span className="next-funding">
+              Next Funding: {new Date(status.nextFundingTime).toLocaleTimeString()} (
+              {parseFloat(status.minutesUntilFunding).toFixed(0)} min)
+            </span>
+          </div>
+        )}
       </header>
+
       <main className="dashboard">
-        <div className="chart-container">
-          <Chart symbol={symbol} />
+        <div className="dashboard-left">
+          <PanelFundingBot status={status} onRefresh={refreshStatus} />
         </div>
-        <div className="panels">
-          <PanelAkun />
-          <PanelCoinglass symbol={symbol} />
-          <PanelWhaleAlert />
-          <PanelSentiment symbol={symbol} />
-          <PanelAI symbol={symbol} />
-        </div>
-        <div className="order-form">
-          <OrderForm symbol={symbol} />
+        <div className="dashboard-center">
+          <PanelOpportunities
+            scanResults={status?.scanResults}
+            onRefresh={refreshStatus}
+          />
+          <PanelPositions
+            activePositions={status?.activePositions}
+            tradeHistory={status?.tradeHistory}
+            onRefresh={refreshStatus}
+          />
         </div>
       </main>
+
+      <footer className="App-footer">
+        <p>Funding times: 00:00 / 08:00 / 16:00 UTC | Strategy: Hedge spot + futures to collect funding fees</p>
+      </footer>
     </div>
   );
 }

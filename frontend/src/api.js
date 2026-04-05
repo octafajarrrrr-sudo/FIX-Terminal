@@ -1,50 +1,81 @@
 const API_BASE = 'http://localhost:5000/api';
 
-export const fetchAccount = async () => {
-  const res = await fetch(`${API_BASE}/account`);
+// ============ Funding Fee Bot ============
+
+export const fetchBotStatus = async () => {
+  const res = await fetch(`${API_BASE}/ff/status`);
   return res.json();
 };
 
-export const fetchPositions = async () => {
-  const res = await fetch(`${API_BASE}/positions`);
-  return res.json();
-};
-
-export const placeOrder = async (order) => {
-  const res = await fetch(`${API_BASE}/orders`, {
+export const startBot = async (config = {}) => {
+  const res = await fetch(`${API_BASE}/ff/start`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(order),
+    body: JSON.stringify(config),
   });
   return res.json();
 };
 
-export const fetchOpenInterest = async (symbol) => {
-  const res = await fetch(`${API_BASE}/coinglass/oi?symbol=${symbol}`);
+export const stopBot = async () => {
+  const res = await fetch(`${API_BASE}/ff/stop`, { method: 'POST' });
   return res.json();
 };
 
-export const fetchFundingRate = async (symbol) => {
-  const res = await fetch(`${API_BASE}/coinglass/funding?symbol=${symbol}`);
+export const updateBotConfig = async (config) => {
+  const res = await fetch(`${API_BASE}/ff/config`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config),
+  });
   return res.json();
 };
 
-export const fetchWhaleTracker = async () => {
-  const res = await fetch(`${API_BASE}/coinglass/whale`);
+export const scanFundingRates = async () => {
+  const res = await fetch(`${API_BASE}/ff/scan`);
   return res.json();
 };
 
-export const fetchWhaleAlert = async () => {
-  const res = await fetch(`${API_BASE}/whalealert`);
+export const fetchOpportunities = async () => {
+  const res = await fetch(`${API_BASE}/ff/opportunities`);
   return res.json();
 };
 
-export const fetchSentiment = async (symbol) => {
-  const res = await fetch(`${API_BASE}/sentiment/${symbol}`);
+export const openPosition = async (symbol) => {
+  const res = await fetch(`${API_BASE}/ff/open`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ symbol }),
+  });
   return res.json();
 };
 
-export const fetchAI = async (symbol) => {
-  const res = await fetch(`${API_BASE}/ai/${symbol}`);
+export const closePosition = async (positionId) => {
+  const res = await fetch(`${API_BASE}/ff/close`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ positionId }),
+  });
+  return res.json();
+};
+
+export const closeAllPositions = async () => {
+  const res = await fetch(`${API_BASE}/ff/close-all`, { method: 'POST' });
+  return res.json();
+};
+
+// ============ Binance Direct ============
+
+export const fetchBalance = async () => {
+  const res = await fetch(`${API_BASE}/binance/balance`);
+  return res.json();
+};
+
+export const fetchPositions = async () => {
+  const res = await fetch(`${API_BASE}/binance/positions`);
+  return res.json();
+};
+
+export const fetchFundingHistory = async (symbol) => {
+  const res = await fetch(`${API_BASE}/binance/funding-history/${symbol}`);
   return res.json();
 };

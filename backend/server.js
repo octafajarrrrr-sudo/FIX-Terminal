@@ -12,109 +12,161 @@ const server = http.createServer(app);
 const io = socketIo(server, { cors: { origin: '*' } });
 
 // Import services
-const bingxService = require('./services/bingx');
-const coinglassService = require('./services/coinglass');
-const whaleAlertService = require('./services/whalealert');
-const sentimentService = require('./services/sentiment');
-const aiService = require('./services/ai');
+const binance = require('./services/binance');
+const ffBot = require('./services/fundingFeeBot');
 
-// REST endpoints
-app.get('/api/account', async (req, res) => {
+// ============ Funding Fee Bot Endpoints ============
+
+// Get full bot status
+app.get('/api/ff/status', (req, res) => {
+  res.json(ffBot.getStatus());
+});
+
+// Start the bot
+app.post('/api/ff/start', (req, res) => {
   try {
-    const account = await bingxService.getAccount();
-    res.json(account);
+    const result = ffBot.startBot(req.body || {});
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/positions', async (req, res) => {
+// Stop the bot
+app.post('/api/ff/stop', (req, res) => {
   try {
-    const positions = await bingxService.getPositions();
-    res.json(positions);
+    const result = ffBot.stopBot();
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.post('/api/orders', async (req, res) => {
+// Update bot config
+app.post('/api/ff/config', (req, res) => {
   try {
-    const order = await bingxService.placeOrder(req.body);
-    res.json(order);
+    const result = ffBot.updateConfig(req.body);
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/coinglass/oi', async (req, res) => {
+// Manual funding rate scan
+app.get('/api/ff/scan', async (req, res) => {
   try {
-    const { symbol } = req.query;
-    const data = await coinglassService.getOpenInterest(symbol);
+    const data = await ffBot.scanFundingRates();
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/coinglass/funding', async (req, res) => {
+// Get opportunities above threshold
+app.get('/api/ff/opportunities', async (req, res) => {
   try {
-    const { symbol } = req.query;
-    const data = await coinglassService.getFundingRate(symbol);
+    const data = await ffBot.getOpportunities();
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/coinglass/whale', async (req, res) => {
+// Manually open a hedged position
+app.post('/api/ff/open', async (req, res) => {
   try {
-    const data = await coinglassService.getWhaleTracker();
+    const { symbol } = req.body;
+    if (!symbol) return res.status(400).json({ error: 'symbol is required' });
+
+    // Get current funding rate for the symbol
+    const rate = await binance.getFundingRate(symbol);
+    const fundingRate = parseFloat(rate.lastFundingRate);
+
+    const result = await ffBot.openHedgedPosition(symbol, fundingRate);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Close a specific position
+app.post('/api/ff/close', async (req, res) => {
+  try {
+    const { positionId } = req.body;
+    if (!positionId) return res.status(400).json({ error: 'positionId is required' });
+    const result = await ffBot.closeHedgedPosition(positionId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Close all active positions
+app.post('/api/ff/close-all', async (req, res) => {
+  try {
+    const results = await ffBot.closeAllPositions();
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============ Binance Direct Endpoints ============
+
+// Futures balance
+app.get('/api/binance/balance', async (req, res) => {
+  try {
+    const data = await binance.getFuturesBalance();
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/whalealert', async (req, res) => {
+// Current futures positions
+app.get('/api/binance/positions', async (req, res) => {
   try {
-    const txs = await whaleAlertService.getRecentTransactions();
-    res.json(txs);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.get('/api/sentiment/:symbol', async (req, res) => {
-  try {
-    const data = await sentimentService.getSentiment(req.params.symbol);
+    const data = await binance.getFuturesPositions();
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/ai/:symbol', async (req, res) => {
+// Funding rate history
+app.get('/api/binance/funding-history/:symbol', async (req, res) => {
   try {
-    const analysis = await aiService.analyze(req.params.symbol);
-    res.json(analysis);
+    const data = await binance.getFundingRateHistory(req.params.symbol);
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Socket.IO untuk real-time price
+// ============ Socket.IO for real-time updates ============
+
 io.on('connection', (socket) => {
   console.log('Client connected');
 
-  socket.on('subscribe', (symbol) => {
-    // Panggil method subscribePrice dari bingxService dengan callback untuk mengirim ke client
-    bingxService.subscribePrice(symbol, (price) => {
-      socket.emit('price', { symbol, price });
-    });
+  // Send bot status every 5 seconds to connected clients
+  const statusInterval = setInterval(() => {
+    socket.emit('ff:status', ffBot.getStatus());
+  }, 5000);
+
+  socket.on('ff:scan', async () => {
+    try {
+      const data = await ffBot.scanFundingRates();
+      socket.emit('ff:scanResult', data);
+    } catch (err) {
+      socket.emit('ff:error', { message: err.message });
+    }
   });
 
-  socket.on('disconnect', () => console.log('Client disconnected'));
+  socket.on('disconnect', () => {
+    clearInterval(statusInterval);
+    console.log('Client disconnected');
+  });
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`FF Bot server running on port ${PORT}`));
