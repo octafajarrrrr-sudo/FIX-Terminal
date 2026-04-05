@@ -21,7 +21,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from agents.executor.binance_client import BinanceClient
 from agents.executor import strategy
 from agents.executor.risk_manager import RiskManager
-from agents.executor.logger import log_trade
+from agents.executor.logger import log_trade, log_error, log_exception
 from agents.executor import metrics_exporter
 
 # ---------------------------------------------------------------------------
@@ -195,6 +195,12 @@ def run():
                 entry_order = client.create_market_order(symbol, "buy", qty)
                 if not entry_order:
                     metrics_exporter.record_error()
+                    log_error({
+                        "source": "executor.entry_order",
+                        "message": f"Failed to open LONG {symbol}",
+                        "level": "ERROR",
+                        "details": {"symbol": symbol, "qty": qty, "rate": pair["funding_rate"]},
+                    })
                     log_trade({
                         "symbol": symbol,
                         "funding_rate": pair["funding_rate"],
@@ -279,6 +285,7 @@ def run():
 
         except Exception as e:
             logger.error("Unexpected error in main loop: %s", e, exc_info=True)
+            log_exception("executor.main_loop", e, critical=True)
             metrics_exporter.record_error()
             if risk_cfg.get("pause_on_error", True):
                 risk.pause(duration_seconds=300)

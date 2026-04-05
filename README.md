@@ -138,10 +138,34 @@ pm2 stop all                # Stop all processes
 
 ## Telegram Bot Commands
 
-- `/start` - Show help
-- `/status` - Check pending recommendations
-- `/check` - Manually check for new recommendations
-- Reply `yes` or `no` to approve/reject a recommendation
+| Command | Description |
+|---------|-------------|
+| `/start` | Show help and available commands |
+| `/status` | Bot status (mode, pending recommendations, error count) |
+| `/config` | View current configuration parameters |
+| `/setparam <key> <value>` | Change a parameter (e.g. `/setparam min_funding_rate -1.5`) |
+| `/profit` | View 24h and 7-day trading performance |
+| `/analyze` | Trigger LLM analysis on demand |
+| `/errors` | View recent error log entries |
+| `/check` | Check for pending LLM recommendations |
+| `/ask <question>` | Ask the AI anything about your trading strategy |
+| `yes` / `no` | Approve or reject a pending recommendation |
+
+### AI Conversation
+
+Use `/ask` to have a conversation with the AI agent. It has access to your current
+trading performance and configuration, and can help you understand your results,
+suggest parameter changes, or answer questions about the strategy.
+
+Examples:
+- `/ask Why is my win rate low?`
+- `/ask Should I lower the funding rate threshold?`
+- `/ask Explain how funding rate arbitrage works`
+
+### Error Notifications
+
+The bot automatically sends you alerts when critical errors occur in the executor.
+Errors are also logged to `shared/logs/errors.log` for detailed review.
 
 ## How It Works
 
